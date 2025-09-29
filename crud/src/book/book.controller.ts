@@ -2,12 +2,17 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { BookService } from './book.service';
 import { Book } from './schema/bookSchema';
 import { CreateBookDto } from './dto/create.book.dto';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 
-
+@SkipThrottle()
 @Controller('books')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
+
+  @SkipThrottle({
+    default:false,
+  })
   @Get()
   async getAllBooks(): Promise<Book[]> {
     return this.bookService.findAll();
