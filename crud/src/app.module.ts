@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BookModule } from './book/book.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { MyLoggerModule } from './my-logger/my-logger.module';
 
 
 @Module({
@@ -13,7 +14,7 @@ import { APP_GUARD } from '@nestjs/core';
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGO_URI),
     BookModule,
-    ThrottlerModule.forRoot([{
+    ThrottlerModule.forRoot([{         //throttler at app level
       name:'long',
       ttl:60000,
       limit:100,
@@ -22,7 +23,8 @@ import { APP_GUARD } from '@nestjs/core';
       name:'short',
       ttl:1000,
       limit:3,
-    }])
+    }]),
+    MyLoggerModule
   ],
  
   controllers: [AppController],

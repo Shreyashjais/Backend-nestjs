@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { BookService } from './book.service';
 import { Book } from './schema/bookSchema';
 import { CreateBookDto } from './dto/create.book.dto';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import { UpdateBookDto } from './dto/update.book.dto';
 
 @SkipThrottle()
 @Controller('books')
@@ -13,20 +14,32 @@ export class BookController {
   @SkipThrottle({
     default:false,
   })
+  
   @Get()
-  async getAllBooks(): Promise<Book[]> {
-    return this.bookService.findAll();
-  }
+async getAllBooks(
+  @Query('author') author?: string,
+  @Query('page') page: number = 1,
+  @Query('limit') limit: number = 10,
+): Promise<{
+  data: Book[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}> {
+  return this.bookService.findAllBooks(author, +page, +limit);
+}
 
   @Post()
   async createBook(@Body() book: CreateBookDto): Promise<Book> {
     return this.bookService.createBook(book);
   }
 
-  
+  @Throttle({short:{ttl:1000, limit:1}})  //throttler at controller level
   @Get(':id')
-  async getSingleBook(@Param('id') id: string): Promise<Book> {
-    return this.bookService.singleBook(id);
+  async getSingleBook(@Param('id',ParseIntPipe) id: string): Promise<Book> {
+    return this.bookService.findBookById(id);
   }
 
   @Delete(':id')
@@ -35,7 +48,7 @@ export class BookController {
   }
 
   @Put(':id')
-  async updateBook(@Param('id')id:string, @Body() book:CreateBookDto):Promise<Book>{
+  async updateBook(@Param('id')id:string, @Body() book:UpdateBookDto):Promise<Book>{
     return this.bookService.updateBook(id, book)
   }
 }
